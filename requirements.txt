@@ -1,0 +1,12 @@
+torch
+torchvision
+pandas
+numpy
+matplotlib
+mplfinance
+yfinance
+opencv-python
+scikit-learn
+tqdm
+pyyaml
+streamlit
