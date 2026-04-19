@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import tensorflow as tf
 import os
 
-data = pd.read_csv("data/raw/AAPL.csv", index_col=0, parse_dates=True)
+data = pd.read_csv("data/raw/volatility/AAPL.csv", index_col=0, parse_dates=True)
 data['Close'] = pd.to_numeric(data['Close'], errors='coerce')
 data['log_return'] = np.log(data['Close'] / data['Close'].shift(1))
 data.dropna(subset=['log_return'], inplace=True)
@@ -57,12 +57,12 @@ plt.plot(preds_unscaled, label="Predicted Volatility")
 plt.legend()
 plt.title("LSTM Volatility Prediction")
 os.makedirs("outputs/plots", exist_ok=True)
-plt.savefig("outputs/plots/lstm_volatility_plot.png")
+plt.savefig("data/processed/volatility/outputs/plots/lstm_volatility_plot.png")
 
 os.makedirs("models", exist_ok=True)
-model.save("models/lstm_model.h5")
+model.save("models/volatility/lstm_model.h5")
 
-prediction_dir = "outputs/predictions"
+prediction_dir = "data/processed/volatility/outputs/predictions"
 os.makedirs(prediction_dir, exist_ok=True)
 dates = data.index[-len(preds_unscaled):]
 pred_df = pd.DataFrame({

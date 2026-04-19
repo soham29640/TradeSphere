@@ -4,8 +4,8 @@ import os
 import numpy as np
 
 symbol = "AAPL"
-raw_dir = "data/raw"
-processed_dir = "data/processed"
+raw_dir = "data/raw/volatility"
+processed_dir = "data/processed/volatility"
 os.makedirs(raw_dir, exist_ok=True)
 os.makedirs(processed_dir, exist_ok=True)
 
@@ -36,7 +36,7 @@ df.dropna(inplace=True)
 df.to_csv(processed_file)
 print("Cleaned data saved.")
 
-prediction_dir = "outputs/predictions"
+prediction_dir = "data/processed/volatility/outputs/predictions"
 prediction_file = os.path.join(prediction_dir,"true_values.csv")
 data = pd.read_csv(processed_file)
 data["true_volatility"] = data["log_return"].rolling(window=20).std()

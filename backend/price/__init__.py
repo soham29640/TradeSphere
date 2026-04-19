@@ -1,0 +1,1 @@
+from .load_and_predict_price_model import predict_next_prices

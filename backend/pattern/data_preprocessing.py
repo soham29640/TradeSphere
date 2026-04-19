@@ -1,57 +1,58 @@
 import os
 
-original_images = sorted([
-    f for f in os.listdir(os.path.join("data", "raw", "train", "images"))
-    if f.lower().endswith(('.jpg', '.png', '.jpeg'))
-])
 
-label_dir = os.path.join("data", "raw", "train", "labels")
+def clean_empty_labels(image_dir: str, label_dir: str) -> None:
+    """
+    Removes label files that have no annotations and deletes their
+    corresponding images. Keeps the dataset free of unannotated samples.
 
-count = 0
-count1 = 0
-count2 = 0
+    Args:
+        image_dir : Directory that holds the raw images.
+        label_dir : Directory that holds the YOLO-format .txt label files.
+    """
+    if not os.path.isdir(label_dir):
+        raise FileNotFoundError(f"Label directory not found: {label_dir}")
+    if not os.path.isdir(image_dir):
+        raise FileNotFoundError(f"Image directory not found: {image_dir}")
 
-for i, original_image in enumerate(original_images, start=1):
+    deleted = 0
+    skipped = 0
 
-    base_name = os.path.splitext(original_image)[0]
-    label_file = os.path.join(label_dir, base_name + ".txt")
+    for label_file in sorted(os.listdir(label_dir)):
+        if not label_file.endswith(".txt"):
+            continue
 
-    if os.path.exists(label_file):
-        with open(label_file, 'r') as file:
-            first_line = file.readline().strip()
-            if first_line:
-                count+=1
-            else:
-                count1+=1
-    else:
-        count2+=1
-
-print(count)        
-print(count1)
-print(count2)
-
-image_dir = "data/raw/train/images"
-
-deleted = 0
-
-for label_file in os.listdir(label_dir):
-    if label_file.endswith(".txt"):
         label_path = os.path.join(label_dir, label_file)
-        with open(label_path, 'r') as f:
-            first_line = f.readline().strip()
-        
-        if not first_line:
-            base_name = os.path.splitext(label_file)[0]
-            
-            for ext in ['.jpg', '.png', '.jpeg']:
-                image_path = os.path.join(image_dir, base_name + ext)
-                if os.path.exists(image_path):
-                    os.remove(image_path)
-                    print(f"[INFO] Deleted image: {image_path}")
-                    break
-            
-            os.remove(label_path)
-            print(f"[INFO] Deleted empty label: {label_path}")
-            deleted += 1
 
-print(f"\nCleanup complete. {deleted} images + labels removed.")
+        # Keep any label file that has at least one non-blank line
+        with open(label_path, "r") as f:
+            has_annotation = any(line.strip() for line in f)
+
+        if has_annotation:
+            skipped += 1
+            continue
+
+        # Delete matching image (try common extensions)
+        base = os.path.splitext(label_file)[0]
+        image_deleted = False
+        for ext in (".jpg", ".jpeg", ".png"):
+            img_path = os.path.join(image_dir, base + ext)
+            if os.path.exists(img_path):
+                os.remove(img_path)
+                image_deleted = True
+                break
+
+        if not image_deleted:
+            print(f"  [WARN] No image found for label: {label_file}")
+
+        os.remove(label_path)
+        deleted += 1
+
+    print(f"Removed {deleted} empty sample(s). Kept {skipped} annotated sample(s).")
+
+
+if __name__ == "__main__":
+    clean_empty_labels(
+        image_dir="data/raw/pattern/train/images",
+        label_dir="data/raw/pattern/train/labels",
+    )

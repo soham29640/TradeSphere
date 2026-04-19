@@ -3,7 +3,7 @@ import numpy as np
 from arch import arch_model
 import os
 
-data = pd.read_csv("data/processed/AAPL_cleaned.csv", index_col=0, parse_dates=True)
+data = pd.read_csv("data/processed/volatility/AAPL_cleaned.csv", index_col=0, parse_dates=True)
 log_return = data["log_return"].dropna()
 
 rolling_window = 145
@@ -25,8 +25,8 @@ garch_df = pd.DataFrame({
 })
 garch_df.set_index("date", inplace=True)
 
-os.makedirs("outputs/predictions", exist_ok=True)
-garch_df.to_csv("outputs/predictions/garch_predictions.csv")
+os.makedirs("data/processed/volatility/outputs/predictions", exist_ok=True)
+garch_df.to_csv("data/processed/volatility/outputs/predictions/garch_predictions.csv")
 print("Rolling GARCH predictions saved.")
 
 import matplotlib.pyplot as plt
@@ -41,5 +41,5 @@ plt.grid(True)
 plt.tight_layout()
 
 os.makedirs("outputs/plots", exist_ok=True)
-plt.savefig("outputs/plots/garch_rolling_plot.png")
+plt.savefig("data/processed/volatility/outputs/plots/garch_rolling_plot.png")
 plt.show()

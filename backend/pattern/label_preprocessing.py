@@ -1,51 +1,75 @@
 import os
-import csv
-import shutil
 import pandas as pd
+from image_preprocessing import process_images
 
 NUM_CLASSES = 20
 
-raw_image_dir = os.path.join("data", "raw", "train", "images")
-label_dir = os.path.join("data", "raw", "train", "labels")
-processed_image_dir = os.path.join("data", "processed", "train_images")
-output_csv = os.path.join("data", "processed", "train_labels.csv")
 
-os.makedirs(processed_image_dir, exist_ok=True)
+def create_labels_csv(
+    raw_img_dir: str,
+    label_dir: str,
+    processed_img_dir: str,
+    output_csv: str,
+) -> None:
+    """
+    Builds a multi-label CSV aligned with the processed (renamed) images.
 
-label_data = []
-original_images = sorted([
-    f for f in os.listdir(raw_image_dir)
-    if f.lower().endswith(('.jpg', '.png', '.jpeg'))
-])
+    Pipeline:
+        1. Calls process_images() to copy + rename images and get the mapping.
+        2. For each renamed image, reads its original label file.
+        3. Writes a CSV with columns: Filename, Class0 … Class{N-1}.
 
-for i, original_image in enumerate(original_images, start=1):
-    base_name = os.path.splitext(original_image)[0]
-    label_file = os.path.join(label_dir, base_name + ".txt")
+    Args:
+        raw_img_dir      : Raw images (before renaming).
+        label_dir        : YOLO-format .txt label files (named after raw images).
+        processed_img_dir: Destination for renamed images.
+        output_csv       : Where to write the final label CSV.
+    """
+    # Step 1 — copy & rename images; get (original_stem → new_filename) map
+    name_map = process_images(raw_img_dir, processed_img_dir)
 
-    ext = os.path.splitext(original_image)[1].lower()
-    new_image_name = f"{i}{ext}"
-    new_image_path = os.path.join(processed_image_dir, new_image_name)
+    if not name_map:
+        print("No images to label — aborting CSV creation.")
+        return
 
-    shutil.copy2(os.path.join(raw_image_dir, original_image), new_image_path)
+    rows = []
+    missing_labels = 0
 
-    label_vector = [0] * NUM_CLASSES
-    if os.path.exists(label_file):
-        with open(label_file, 'r') as f:
-            for line in f:
-                line = line.strip()
-                if line:
-                    class_id = int(line.split()[0])
-                    if 0 <= class_id < NUM_CLASSES:
-                        label_vector[class_id] = 1
-        label_data.append([new_image_name] + label_vector)
-    else:
-        print(f"[WARN] Missing label for: {original_image}")
+    for original_stem, new_filename in name_map:
+        label_path = os.path.join(label_dir, original_stem + ".txt")
+        label_vector = [0] * NUM_CLASSES
 
-header = ["Filename"] + [f"Class{i}" for i in range(NUM_CLASSES)]
-df = pd.DataFrame(label_data, columns=header)
+        if os.path.exists(label_path):
+            with open(label_path) as f:
+                for line in f:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        class_id = int(line.split()[0])
+                        if 0 <= class_id < NUM_CLASSES:
+                            label_vector[class_id] = 1
+                    except (ValueError, IndexError):
+                        print(f"  [WARN] Malformed line in {label_path}: '{line}'")
+        else:
+            missing_labels += 1
+            print(f"  [WARN] Label file missing for '{original_stem}' — defaulting to all zeros.")
 
-df.to_csv(output_csv, index=False)
+        rows.append([new_filename] + label_vector)
 
-print(f"[INFO] Saved {len(df)} entries to {output_csv}")
-print("[INFO] Label distribution:")
-print(df.iloc[:, 1:].sum())
+    columns = ["Filename"] + [f"Class{i}" for i in range(NUM_CLASSES)]
+    df = pd.DataFrame(rows, columns=columns)
+
+    os.makedirs(os.path.dirname(output_csv) or ".", exist_ok=True)
+    df.to_csv(output_csv, index=False)
+
+    print(f"Saved '{output_csv}' with {len(df)} row(s). ({missing_labels} label file(s) missing.)")
+
+
+if __name__ == "__main__":
+    create_labels_csv(
+        raw_img_dir="data/raw/pattern/train/images",
+        label_dir="data/raw/pattern/train/labels",
+        processed_img_dir="data/processed/pattern/train_images",
+        output_csv="data/processed/pattern/train_labels.csv",
+    )

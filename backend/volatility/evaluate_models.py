@@ -3,7 +3,7 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error
 import numpy as np
 import os
 
-prediction_dir = "outputs/predictions"
+prediction_dir = "data/processed/volatility/outputs/predictions"
 true_values_path = os.path.join(prediction_dir, "true_values.csv")
 
 true_df = pd.read_csv(true_values_path, parse_dates=["Date"])

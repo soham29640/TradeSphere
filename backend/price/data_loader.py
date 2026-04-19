@@ -1,122 +1,103 @@
-import yfinance as yf
-import requests
+import time
 import pandas as pd
-from dotenv import load_dotenv
-import os
-from pathlib import Path
+import yfinance as yf
 
-# ---------------- ENV ----------------
-env_path = Path(__file__).resolve().parents[2] / ".env"
-load_dotenv(env_path)
-
-API_KEY = os.getenv("ALPHA_API_KEY")
-
-print("🔑 API KEY LOADED:", API_KEY is not None)
+MAX_RETRIES = 2
+RETRY_DELAY = 60  # seconds
 
 
-# ---------------- YAHOO ----------------
-def fetch_from_yahoo(ticker, interval, period):
-    try:
-        df = yf.download(
-            ticker,
-            interval=interval,
-            period=period,
-            progress=False,
-            threads=False
-        )
+def fetch_data(ticker: str, interval: str = "5m", period: str = "5d") -> pd.DataFrame:
+    """
+    Robust OHLCV fetcher using yfinance.
 
-        if df is not None and not df.empty:
+    Handles:
+    - Rate limits
+    - MultiIndex columns
+    - Missing 'Close' (uses 'Adj Close')
+    - Dirty/variant schemas
+
+    Returns:
+        Clean DataFrame with columns:
+        Date, Open, High, Low, Close, Volume
+    """
+
+    for attempt in range(1, MAX_RETRIES + 1):
+        try:
+            print(f"📡 Fetching '{ticker}' from Yahoo Finance (attempt {attempt}/{MAX_RETRIES})...")
+
+            df = yf.download(
+                ticker,
+                interval=interval,
+                period=period,
+                progress=False,
+                threads=False,
+                auto_adjust=True
+            )
+
+            # 🔴 Empty response (rate limit or API issue)
+            if df is None or df.empty:
+                raise ValueError("Empty dataframe returned")
+
+            # ✅ Reset index
             df = df.reset_index()
 
-            # ✅ Normalize column name
-            if 'Datetime' in df.columns:
-                df.rename(columns={'Datetime': 'Date'}, inplace=True)
+            # ✅ Handle MultiIndex columns
+            if isinstance(df.columns, pd.MultiIndex):
+                df.columns = df.columns.get_level_values(0)
 
-            print("✅ Yahoo success")
+            # ✅ Clean column names
+            df.columns = [col.strip() for col in df.columns]
+
+            # 🔁 Handle Datetime → Date
+            if "Datetime" in df.columns:
+                df.rename(columns={"Datetime": "Date"}, inplace=True)
+
+            # 🔁 Handle missing Close
+            if "Close" not in df.columns:
+                if "Adj Close" in df.columns:
+                    print("⚠️ 'Close' missing → using 'Adj Close'")
+                    df.rename(columns={"Adj Close": "Close"}, inplace=True)
+                else:
+                    raise ValueError(
+                        f"'Close' column missing. Got: {df.columns.tolist()}"
+                    )
+
+            # ✅ Validate required columns
+            required_cols = ["Date", "Open", "High", "Low", "Close", "Volume"]
+            missing = [c for c in required_cols if c not in df.columns]
+
+            if missing:
+                raise ValueError(
+                    f"Missing columns: {missing}. Got: {df.columns.tolist()}"
+                )
+
+            # ✅ Select only needed columns
+            df = df[required_cols].copy()
+
+            # ✅ Drop invalid rows
+            df.dropna(subset=["Close"], inplace=True)
+            df.reset_index(drop=True, inplace=True)
+
+            print(f"✅ Fetched {len(df)} rows for '{ticker}'")
             return df
 
-    except Exception as e:
-        print("❌ Yahoo error:", e)
+        except Exception as e:
+            error_msg = str(e).lower()
 
-    return None
+            is_rate_limit = any(phrase in error_msg for phrase in (
+                "rate limit", "too many requests", "yfratelimiterror", "empty dataframe"
+            ))
 
+            if is_rate_limit and attempt < MAX_RETRIES:
+                print(f"⚠️ Rate limited. Waiting {RETRY_DELAY}s before retry...")
+                time.sleep(RETRY_DELAY)
+                continue
 
-# ---------------- ALPHA VANTAGE ----------------
-def fetch_from_alpha(ticker):
-    if not API_KEY:
-        print("❌ Alpha API key missing")
-        return None
+            elif is_rate_limit and attempt == MAX_RETRIES:
+                raise RuntimeError(
+                    f"Yahoo Finance rate limit hit after {MAX_RETRIES} attempts."
+                ) from e
 
-    url = "https://www.alphavantage.co/query"
-    params = {
-        "function": "TIME_SERIES_DAILY",   # 🔥 FREE endpoint
-        "symbol": ticker,
-        "apikey": API_KEY
-    }
-
-    try:
-        r = requests.get(url, params=params, timeout=10)
-
-        if r.status_code != 200:
-            print("❌ Alpha HTTP error:", r.status_code)
-            return None
-
-        data = r.json()
-        print("🔍 Alpha response:", data)
-
-        if "Note" in data or "Error Message" in data or "Information" in data:
-            print("⚠️ Alpha API issue")
-            return None
-
-        key = "Time Series (Daily)"
-        if key not in data:
-            return None
-
-        df = pd.DataFrame.from_dict(data[key], orient='index')
-        df.columns = ["Open", "High", "Low", "Close", "Volume"]
-
-        df = df.astype(float)
-        df.index = pd.to_datetime(df.index)
-        df = df.sort_index()
-
-        df.reset_index(inplace=True)
-        df.rename(columns={"index": "Date"}, inplace=True)
-
-        print("✅ Alpha success (daily data)")
-        return df
-
-    except Exception as e:
-        print("❌ Alpha error:", e)
-        return None
-    
-
-# ---------------- MAIN FUNCTION ----------------
-def fetch_data(ticker, interval="5m", period="5d"):
-
-    # 🔥 1. Try Yahoo
-    df = fetch_from_yahoo(ticker, interval, period)
-    if df is not None:
-        return df
-
-    # 🔥 2. Try Alpha
-    print("⚠️ Switching to Alpha Vantage...")
-    df = fetch_from_alpha(ticker)
-    if df is not None:
-        return df
-
-    # 🔥 3. FINAL FALLBACK (never crash)
-    print("⚠️ Using fallback sample data...")
-
-    dates = pd.date_range(end=pd.Timestamp.now(), periods=100, freq='5min')
-    prices = pd.Series(range(100)) + 100
-
-    df = pd.DataFrame({
-        "Date": dates,
-        "Open": prices,
-        "High": prices + 1,
-        "Low": prices - 1,
-        "Close": prices,
-        "Volume": 1000
-    })
-
-    return df
+            else:
+                print(f"❌ Failed to fetch '{ticker}': {e}")
+                raise

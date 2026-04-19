@@ -11,7 +11,7 @@ import random
 import matplotlib.pyplot as plt
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from layers.custom_attention import AttentionSum
+from custom_attention import AttentionSum
 
 SEED = 42
 os.environ['PYTHONHASHSEED'] = str(SEED)
@@ -19,7 +19,7 @@ random.seed(SEED)
 np.random.seed(SEED)
 tf.random.set_seed(SEED)
 
-data = pd.read_csv("data/processed/AAPL_cleaned.csv", index_col=0, parse_dates=True)
+data = pd.read_csv("data/processed/volatility/AAPL_cleaned.csv", index_col=0, parse_dates=True)
 data['log_return'] = np.log(data['Close'] / data['Close'].shift(1))
 data.dropna(subset=['log_return'], inplace=True)
 
@@ -73,11 +73,11 @@ plt.plot(true_unscaled, label="True Volatility")
 plt.plot(preds_unscaled, label="Predicted Volatility")
 plt.legend()
 plt.title("Attention Volatility Prediction")
-plt.savefig("outputs/plots/attention_volatility_plot.png")
+plt.savefig("data/processed/volatility/outputs/plots/attention_volatility_plot.png")
 
-model.save("models/attention_model.h5")
+model.save("models/volatility/attention_model.h5")
 
-prediction_dir = "outputs/predictions"
+prediction_dir = "data/processed/volatility/outputs/predictions"
 os.makedirs(prediction_dir, exist_ok=True)
 dates = data.index[-len(preds_unscaled):]
 pred_df = pd.DataFrame({
