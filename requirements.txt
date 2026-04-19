@@ -14,3 +14,4 @@ tensorflow==2.13.0
 scikit-learn==1.4.2
 arch
 numpy==1.24.3
+google-generativeai
