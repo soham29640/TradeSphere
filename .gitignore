@@ -1,3 +1,2 @@
-.env
 myenv/
-.streamlit/secrets.toml
+frontend/.streamlit/secrets.toml
