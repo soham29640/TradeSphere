@@ -23,7 +23,7 @@ TICKER_DATA = [
 MODULE_DATA = [
     {
         "cls":        "mc-price",
-        "num":        "01/05",
+        "num":        "01/06",
         "status":     "ACTIVE",
         "icon":       "📈",
         "title":      "Price Predictor",
@@ -39,7 +39,7 @@ MODULE_DATA = [
     },
     {
         "cls":        "mc-pattern",
-        "num":        "02/05",
+        "num":        "02/06",
         "status":     "ACTIVE",
         "icon":       "🔍",
         "title":      "Pattern Detector",
@@ -55,7 +55,7 @@ MODULE_DATA = [
     },
     {
         "cls":        "mc-vol",
-        "num":        "03/05",
+        "num":        "03/06",
         "status":     "ACTIVE",
         "icon":       "🌊",
         "title":      "Volatility Forecast",
@@ -71,7 +71,7 @@ MODULE_DATA = [
     },
     {
         "cls":        "mc-paper",
-        "num":        "04/05",
+        "num":        "04/06",
         "status":     "LIVE",
         "icon":       "💹",
         "title":      "Smart Paper Trading",
@@ -87,7 +87,7 @@ MODULE_DATA = [
     },
     {
         "cls":        "mc-quest",
-        "num":        "05/05",
+        "num":        "05/06",
         "status":     "AI · GEMINI",
         "icon":       "✦",
         "title":      "Daily Quests",
@@ -101,10 +101,26 @@ MODULE_DATA = [
         "btn_key":    "quest_btn",
         "page":       "pages/daily_quest.py",
     },
+    {
+        "cls":        "mc-agent",
+        "num":        "06/06",
+        "status":     "ALPACA",
+        "icon":       "🤖",
+        "title":      "Alpaca Paper Trading Agent",
+        "desc":       "Alpaca-powered autonomous paper trading agent. LSTM signals, live execution, real-time terminal logs.",
+        "kpis":       [("AUTO", "Exe"), ("30s", "Int"), ("PAP", "Mod")],
+        "tags":       ["ALPACA", "AUTONOMOUS", "LIVE-LOG"],
+        "spark_seed": 606,
+        "spark_up":   True,
+        "bgnum":      "06",
+        "btn_lbl":    "→ AGENT",
+        "btn_key":    "agent_btn",
+        "page":       "pages/agent_app.py",
+    },
 ]
 
 STATS_BAR_DATA = [
-    ("5",    "AI Modules"),
+    ("6",    "AI Modules"),
     ("20",   "Chart Patterns"),
     ("5M",   "Bar Resolution"),
     ("LSTM", "Price Model"),
@@ -113,19 +129,20 @@ STATS_BAR_DATA = [
     ("24H",  "Retrain Cycle"),
     ("∞",    "Paper Trades"),
     ("820",  "Daily XP"),
+    ("AUTO", "Agent Trades"),
 ]
 
 NAV_LINKS  = ["Markets", "Models", "Research", "Docs"]
 NAV_CTA    = "→ OPEN PLATFORM"
 HERO_TITLE = ("MARKETS,", "DECODED.")
 HERO_SUB   = (
-    "Five AI-powered modules. One unified platform. Predict prices, detect chart "
-    "patterns, forecast volatility, simulate live paper trading, and complete daily "
-    "AI quests — all in real-time."
+    "Six AI-powered modules. One unified platform. Predict prices, detect chart "
+    "patterns, forecast volatility, simulate live paper trading, complete daily "
+    "AI quests, and run an autonomous trading agent — all in real-time."
 )
 HERO_BADGES = [
     ("hb-live", '<div class="live-dot"></div>LIVE DATA · DAILY REFRESH'),
-    ("hb-ai",   '⬡ &nbsp;<span class="num-highlight">5</span> AI MODELS ACTIVE'),
+    ("hb-ai",   '⬡ &nbsp;<span class="num-highlight">6</span> AI MODELS ACTIVE'),
     ("hb-rt",   "◈ &nbsp;REAL-TIME EXECUTION"),
 ]
 
@@ -206,7 +223,7 @@ st.markdown("""
 :root {
   --green:  #00ffaa; --blue:   #00c2ff; --red:    #ff4d6d;
   --gold:   #ffc145; --purple: #b56dff; --cyan:   #00e5ff;
-  --orange: #ff7b3d;
+  --orange: #ff7b3d; --teal:   #00d4c8;
   --bg:  #03060a; --bg2: #080d14; --bg3: #0d1520; --bg4: #111c2a;
   --border: rgba(255,255,255,0.07); --border2: rgba(255,255,255,0.12);
   --text: #c8d5e8; --muted: #3a4d62; --muted2: #5a6f85;
@@ -243,6 +260,7 @@ section.main > div { padding:0 !important; }
 .orb-2 { width:500px; height:500px; top:40%; right:-150px; background:rgba(0,194,255,0.05); animation-delay:-4s; }
 .orb-3 { width:450px; height:450px; bottom:-100px; left:35%; background:rgba(181,109,255,0.045); animation-delay:-7s; }
 .orb-4 { width:300px; height:300px; top:60%; left:10%; background:rgba(255,123,61,0.03); animation-delay:-2s; }
+.orb-5 { width:280px; height:280px; top:20%; left:60%; background:rgba(0,212,200,0.03); animation-delay:-5s; }
 @keyframes orbDrift { from { transform:translateY(0) scale(1); } to { transform:translateY(-50px) scale(1.06); } }
 
 /* ticker */
@@ -287,7 +305,7 @@ section.main > div { padding:0 !important; }
 .hero-eyebrow::after { background:linear-gradient(to left, transparent, var(--green)); }
 .hero-title { font-family:'Syne',sans-serif; font-size:clamp(44px,7.5vw,108px); line-height:1.0; letter-spacing:-.01em; font-weight:800; color:#fff; width:100%; }
 .hero-title .accent { background:linear-gradient(100deg, var(--green) 0%, var(--cyan) 50%, var(--blue) 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; filter:drop-shadow(0 0 40px rgba(0,255,170,0.3)); }
-.hero-sub  { font-size:16px; font-weight:300; color:var(--muted2); max-width:540px; line-height:1.85; margin:30px auto 0; }
+.hero-sub  { font-size:16px; font-weight:300; color:var(--muted2); max-width:580px; line-height:1.85; margin:30px auto 0; }
 .hero-badges { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-top:40px; }
 .hero-badge  { display:inline-flex; align-items:center; gap:8px; font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:.1em; padding:5px 13px; border-radius:2px; }
 .hb-live { border:1px solid rgba(0,255,170,0.25);   color:var(--green);  background:rgba(0,255,170,0.06); }
@@ -305,9 +323,9 @@ section.main > div { padding:0 !important; }
 .sparkline { position:relative; height:32px; width:100%; margin:8px 0 12px; }
 .sparkline svg { width:100%; height:100%; }
 
-/* module cards */
+/* module cards — 6-column grid */
 .modules-outer { position:relative; z-index:5; margin:0 56px; border:1px solid var(--border); border-top:none; animation:fadeUp .8s ease .3s both; }
-.modules-row   { display:grid; grid-template-columns:repeat(5,1fr); gap:0; }
+.modules-row   { display:grid; grid-template-columns:repeat(6,1fr); gap:0; }
 
 .mc { background:var(--bg2); padding:22px 20px 18px; position:relative; overflow:hidden; transition:background .25s, transform .2s, box-shadow .25s; cursor:pointer; border-top:2px solid transparent; }
 .mc + .mc { border-left:1px solid var(--border); }
@@ -318,12 +336,14 @@ section.main > div { padding:0 !important; }
 .mc-vol     { border-top-color:var(--purple); box-shadow:inset 0 2px 0 0 var(--purple); }
 .mc-paper   { border-top-color:var(--orange); box-shadow:inset 0 2px 0 0 var(--orange); }
 .mc-quest   { border-top-color:var(--gold);   box-shadow:inset 0 2px 0 0 var(--gold); }
+.mc-agent   { border-top-color:var(--teal);   box-shadow:inset 0 2px 0 0 var(--teal); }
 
 .mc-price:hover   { box-shadow:inset 0 2px 0 0 var(--green),  0 8px 32px rgba(0,255,170,.1); }
 .mc-pattern:hover { box-shadow:inset 0 2px 0 0 var(--red),    0 8px 32px rgba(255,77,109,.1); }
 .mc-vol:hover     { box-shadow:inset 0 2px 0 0 var(--purple),  0 8px 32px rgba(181,109,255,.1); }
 .mc-paper:hover   { box-shadow:inset 0 2px 0 0 var(--orange),  0 8px 32px rgba(255,123,61,.1); }
 .mc-quest:hover   { box-shadow:inset 0 2px 0 0 var(--gold),    0 8px 32px rgba(255,193,69,.12); }
+.mc-agent:hover   { box-shadow:inset 0 2px 0 0 var(--teal),    0 8px 32px rgba(0,212,200,.12); }
 
 .mc-scan { position:absolute; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,rgba(255,255,255,.06),transparent); top:-100%; pointer-events:none; }
 .mc:hover .mc-scan { animation:scanDown 2s ease-in-out infinite; }
@@ -335,6 +355,7 @@ section.main > div { padding:0 !important; }
 .mc-vol     .mc-icon { background:rgba(181,109,255,.09); border:1px solid rgba(181,109,255,.25); }
 .mc-paper   .mc-icon { background:rgba(255,123,61,.09);  border:1px solid rgba(255,123,61,.25); }
 .mc-quest   .mc-icon { background:rgba(255,193,69,.09);  border:1px solid rgba(255,193,69,.25); }
+.mc-agent   .mc-icon { background:rgba(0,212,200,.09);   border:1px solid rgba(0,212,200,.25); }
 
 .mc-num    { font-family:'JetBrains Mono',monospace; font-size:8px; letter-spacing:.18em; color:var(--muted); text-transform:uppercase; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; }
 .mc-status { font-family:'JetBrains Mono',monospace; font-size:7.5px; letter-spacing:.1em; padding:2px 7px; border-radius:2px; text-transform:uppercase; }
@@ -343,6 +364,7 @@ section.main > div { padding:0 !important; }
 .mc-vol     .mc-status { color:var(--purple); border:1px solid rgba(181,109,255,.3); background:rgba(181,109,255,.07); }
 .mc-paper   .mc-status { color:var(--orange); border:1px solid rgba(255,123,61,.3);  background:rgba(255,123,61,.07); }
 .mc-quest   .mc-status { color:var(--gold);   border:1px solid rgba(255,193,69,.3);  background:rgba(255,193,69,.07); }
+.mc-agent   .mc-status { color:var(--teal);   border:1px solid rgba(0,212,200,.3);   background:rgba(0,212,200,.07); }
 
 .mc-title { font-family:'Syne',sans-serif; font-size:14px; font-weight:700; color:#fff; margin-bottom:6px; letter-spacing:-.01em; line-height:1.2; }
 .mc-desc  { font-size:10.5px; font-weight:300; color:var(--muted2); line-height:1.7; margin-bottom:12px; }
@@ -352,6 +374,7 @@ section.main > div { padding:0 !important; }
 .mc-vol     .spark-path { stroke:var(--purple); }
 .mc-paper   .spark-path { stroke:var(--orange); }
 .mc-quest   .spark-path { stroke:var(--gold); }
+.mc-agent   .spark-path { stroke:var(--teal); }
 
 .mc-kpis { display:flex; border:1px solid var(--border); margin-bottom:12px; }
 .mc-kpi  { flex:1; padding:6px 4px; text-align:center; border-right:1px solid var(--border); }
@@ -362,6 +385,7 @@ section.main > div { padding:0 !important; }
 .mc-vol     .mc-kpi-val { color:var(--purple); }
 .mc-paper   .mc-kpi-val { color:var(--orange); }
 .mc-quest   .mc-kpi-val { color:var(--gold); }
+.mc-agent   .mc-kpi-val { color:var(--teal); }
 .mc-kpi-lbl { font-size:7.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.07em; }
 
 .mc-tags { display:flex; flex-wrap:wrap; gap:3px; margin-bottom:14px; }
@@ -370,17 +394,24 @@ section.main > div { padding:0 !important; }
 .mc-bgnum { position:absolute; bottom:-18px; right:10px; font-family:'Syne',sans-serif; font-size:90px; font-weight:800; color:rgba(255,255,255,.015); line-height:1; pointer-events:none; user-select:none; transition:color .3s; }
 .mc:hover .mc-bgnum { color:rgba(255,255,255,.03); }
 
-/* launch buttons */
+/* launch buttons — 6 columns */
 div[data-testid="stColumns"] [data-testid="stColumn"]:nth-child(1) button { background:rgba(0,255,170,.07) !important; border:1px solid rgba(0,255,170,.3) !important; color:var(--green) !important; font-family:'JetBrains Mono',monospace !important; font-size:9px !important; letter-spacing:.13em !important; padding:10px 8px !important; border-radius:0 !important; text-transform:uppercase !important; width:100% !important; transition:all .2s !important; }
 div[data-testid="stColumns"] [data-testid="stColumn"]:nth-child(1) button:hover { background:rgba(0,255,170,.15) !important; box-shadow:0 0 20px rgba(0,255,170,.15) !important; }
+
 div[data-testid="stColumns"] [data-testid="stColumn"]:nth-child(2) button { background:rgba(255,77,109,.07) !important; border:1px solid rgba(255,77,109,.3) !important; color:var(--red) !important; font-family:'JetBrains Mono',monospace !important; font-size:9px !important; letter-spacing:.13em !important; padding:10px 8px !important; border-radius:0 !important; text-transform:uppercase !important; width:100% !important; transition:all .2s !important; }
 div[data-testid="stColumns"] [data-testid="stColumn"]:nth-child(2) button:hover { background:rgba(255,77,109,.15) !important; box-shadow:0 0 20px rgba(255,77,109,.15) !important; }
+
 div[data-testid="stColumns"] [data-testid="stColumn"]:nth-child(3) button { background:rgba(181,109,255,.07) !important; border:1px solid rgba(181,109,255,.3) !important; color:var(--purple) !important; font-family:'JetBrains Mono',monospace !important; font-size:9px !important; letter-spacing:.13em !important; padding:10px 8px !important; border-radius:0 !important; text-transform:uppercase !important; width:100% !important; transition:all .2s !important; }
 div[data-testid="stColumns"] [data-testid="stColumn"]:nth-child(3) button:hover { background:rgba(181,109,255,.15) !important; box-shadow:0 0 20px rgba(181,109,255,.15) !important; }
+
 div[data-testid="stColumns"] [data-testid="stColumn"]:nth-child(4) button { background:rgba(255,123,61,.07) !important; border:1px solid rgba(255,123,61,.3) !important; color:var(--orange) !important; font-family:'JetBrains Mono',monospace !important; font-size:9px !important; letter-spacing:.13em !important; padding:10px 8px !important; border-radius:0 !important; text-transform:uppercase !important; width:100% !important; transition:all .2s !important; }
 div[data-testid="stColumns"] [data-testid="stColumn"]:nth-child(4) button:hover { background:rgba(255,123,61,.15) !important; box-shadow:0 0 20px rgba(255,123,61,.15) !important; }
+
 div[data-testid="stColumns"] [data-testid="stColumn"]:nth-child(5) button { background:rgba(255,193,69,.07) !important; border:1px solid rgba(255,193,69,.3) !important; color:var(--gold) !important; font-family:'JetBrains Mono',monospace !important; font-size:9px !important; letter-spacing:.13em !important; padding:10px 8px !important; border-radius:0 !important; text-transform:uppercase !important; width:100% !important; transition:all .2s !important; }
 div[data-testid="stColumns"] [data-testid="stColumn"]:nth-child(5) button:hover { background:rgba(255,193,69,.15) !important; box-shadow:0 0 20px rgba(255,193,69,.15) !important; }
+
+div[data-testid="stColumns"] [data-testid="stColumn"]:nth-child(6) button { background:rgba(0,212,200,.07) !important; border:1px solid rgba(0,212,200,.3) !important; color:var(--teal) !important; font-family:'JetBrains Mono',monospace !important; font-size:9px !important; letter-spacing:.13em !important; padding:10px 8px !important; border-radius:0 !important; text-transform:uppercase !important; width:100% !important; transition:all .2s !important; }
+div[data-testid="stColumns"] [data-testid="stColumn"]:nth-child(6) button:hover { background:rgba(0,212,200,.15) !important; box-shadow:0 0 20px rgba(0,212,200,.15) !important; }
 
 /* stats bar */
 .stats-bar  { position:relative; z-index:5; display:flex; justify-content:center; align-items:stretch; flex-wrap:wrap; margin:48px 56px 0; border:1px solid var(--border); background:var(--bg2); animation:fadeUp .8s ease .55s both; }
@@ -415,6 +446,7 @@ st.markdown("""
 <div class="orb orb-2"></div>
 <div class="orb orb-3"></div>
 <div class="orb orb-4"></div>
+<div class="orb orb-5"></div>
 """, unsafe_allow_html=True)
 
 # ticker
@@ -476,6 +508,6 @@ st.markdown(f'<div class="stats-bar">{stats_html}</div>', unsafe_allow_html=True
 st.markdown("""
 <div class="footer">
   <div class="footer-logo">Trade<span>Sphere</span></div>
-  <div class="footer-text">AI Market Intelligence &nbsp;·&nbsp; Price · Pattern · Volatility · Paper Trading · Daily Quests</div>
+  <div class="footer-text">AI Market Intelligence &nbsp;·&nbsp; Price · Pattern · Volatility · Paper Trading · Daily Quests · Trading Agent</div>
 </div>
 """, unsafe_allow_html=True)

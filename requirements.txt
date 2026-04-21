@@ -1,26 +1,49 @@
-torch
-torchvision
-pandas
-setuptools
-matplotlib
-mplfinance
-yfinance
-opencv-python
-tqdm
-pyyaml
-plotly
-streamlit
-streamlit-autorefresh
-tensorflow==2.13.0
+# ===== Core (must match TF + Torch) =====
+numpy==1.23.5
+pandas==2.0.3
+scipy==1.10.1
 scikit-learn==1.4.2
-arch
-numpy==1.24.3
-google-generativeai
-ta
-requests
-python-dotenv
-alpaca-py
+joblib==1.3.2
+
+# ===== Typing (CRITICAL FIX for your errors) =====
+typing_extensions==4.12.2
+
+# ===== ML =====
+tensorflow==2.13.0
+torch==2.2.2
+torchvision==0.17.2
+
+# ===== Data =====
+yfinance==0.2.37
+ta==0.11.0
+arch==5.3.1
+
+# ===== App =====
+streamlit==1.33.0
+streamlit-autorefresh==1.0.1
+
+# ===== Trading =====
+alpaca-py==0.21.0
 alpha_vantage==2.3.1
-Pillow
-pytz
-joblib
+
+# ===== Visualization =====
+matplotlib==3.7.5
+mplfinance==0.12.10b0
+plotly==5.20.0
+
+# ===== Utils =====
+tqdm==4.66.2
+pyyaml==6.0.1
+requests==2.31.0
+pytz==2024.1
+Pillow==10.2.0
+
+# ===== AI =====
+google-generativeai==0.5.4
+pydantic==2.7.1
+
+# ===== Optional =====
+opencv-python==4.9.0.80
+
+# ===== Env =====
+python-dotenv==1.0.1
