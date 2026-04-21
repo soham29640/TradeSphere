@@ -74,7 +74,7 @@ MODULE_DATA = [
         "num":        "04/05",
         "status":     "LIVE",
         "icon":       "💹",
-        "title":      "Paper Trading",
+        "title":      "Smart Paper Trading",
         "desc":       "Real-time simulated trading via LSTM predictions. 5-min retraining, live buy/sell signals.",
         "kpis":       [("5m", "Rfr"), ("1m", "Win"), ("SIM", "Mod")],
         "tags":       ["LSTM", "REAL-TIME", "AUTO-TRAIN"],

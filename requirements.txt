@@ -1,6 +1,7 @@
 torch
 torchvision
 pandas
+setuptools
 matplotlib
 mplfinance
 yfinance
@@ -15,3 +16,8 @@ scikit-learn==1.4.2
 arch
 numpy==1.24.3
 google-generativeai
+ta
+requests
+python-dotenv
+alpaca-trade-api
+alpha_vantage==2.3.1

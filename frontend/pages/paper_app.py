@@ -5,7 +5,7 @@ Condition 1 — MARKET LIVE (≥ 25 min / 5 bars of today's 5-min data):
     • Auto-refresh every 5 minutes
     • On each refresh: LSTM retrains on (last-day-minus-25min + today) 5-min bars
     • Trading window: OPEN for 1 min after each refresh → LOCKED for 4 min
-    • Chart: last-day full 5-min + today 1-min (live ticks)
+    • Chart: gap-free slice = last (last_day_bars - today_bars) + today bars
 
 Condition 2 — MARKET CLOSED (< 25 min today OR market not open):
     • Shows last complete session chart (5-min bars, static)
@@ -30,7 +30,7 @@ from backend.paper.train_and_predict import train_and_predict
 
 # ── Page config ───────────────────────────────────────────────────────────────
 st.set_page_config(
-    page_title="Paper Trading · Trade Sphere",
+    page_title="Smart Paper Trading · Trade Sphere",
     page_icon="📈",
     layout="wide",
     initial_sidebar_state="collapsed",
@@ -227,9 +227,9 @@ st.markdown("""
 <div class="page-header">
     <div class="breadcrumb">
         <span>Trade Sphere</span><span class="sep">›</span>
-        <span class="active">Paper Trading</span>
+        <span class="active">Smart Paper Trading</span>
     </div>
-    <div class="page-title">PAPER <span>TRADING</span></div>
+    <div class="page-title">SMART <span>PAPER TRADING</span></div>
     <div class="page-caption">LSTM · 5-min refresh · 1-min trade window · Dynamic training window</div>
 </div>
 """, unsafe_allow_html=True)
@@ -366,7 +366,20 @@ f'<div class="kpi-sub">Realised ${portfolio["Realised P&L"]:+,.2f}</div></div>'
 st.markdown('<div class="section-hdr"><span class="section-hdr-label">02 — Chart</span></div>',
             unsafe_allow_html=True)
 
-if df_chart.empty:
+# ── Gap-free chart slice ──────────────────────────────────────────────────────
+if not df_chart.empty and is_live and today_bars > 0 and last_day_bars > 0:
+    last_day_keep  = max(0, last_day_bars - today_bars)
+    total_keep     = last_day_keep + today_bars
+    df_chart_plot  = df_chart.tail(total_keep).copy()
+elif not df_chart.empty:
+    df_chart_plot = df_chart.copy()
+else:
+    df_chart_plot = df_chart.copy()
+
+if not df_chart_plot.empty:
+    df_chart_plot.index = df_chart_plot.index.strftime("%m/%d %H:%M")
+
+if df_chart_plot.empty:
     st.markdown(
         '<div style="border:1px solid rgba(255,255,255,0.06);background:#090d12;'
         'padding:60px;text-align:center;font-family:DM Mono,monospace;'
@@ -377,9 +390,9 @@ if df_chart.empty:
     fig = go.Figure()
 else:
     fig = go.Figure(data=[go.Candlestick(
-        x=df_chart.index,
-        open=df_chart["Open"], high=df_chart["High"],
-        low=df_chart["Low"],   close=df_chart["Close"],
+        x=df_chart_plot.index,
+        open=df_chart_plot["Open"], high=df_chart_plot["High"],
+        low=df_chart_plot["Low"],   close=df_chart_plot["Close"],
         increasing_line_color="#00ffaa", decreasing_line_color="#ff4d6d",
         increasing_fillcolor="rgba(0,255,170,0.15)",
         decreasing_fillcolor="rgba(255,77,109,0.15)",
@@ -388,19 +401,29 @@ else:
 
 # Trade markers + LSTM forecast (only when chart has data)
 trades_df = trader.get_trade_dataframe()
-if not df_chart.empty:
+if not df_chart_plot.empty:
     if is_live and not trades_df.empty:
         buys  = trades_df[trades_df["Action"] == "BUY"]
         sells = trades_df[trades_df["Action"] == "SELL"]
+
+        def _snap_to_label(ts_series, index_labels):
+            snapped = []
+            for ts in pd.to_datetime(ts_series):
+                label = ts.strftime("%m/%d %H:%M")
+                snapped.append(label if label in index_labels else index_labels[-1])
+            return snapped
+
         if not buys.empty:
             fig.add_trace(go.Scatter(
-                x=pd.to_datetime(buys["Timestamp"]), y=buys["Price"],
+                x=_snap_to_label(buys["Timestamp"], df_chart_plot.index.tolist()),
+                y=buys["Price"],
                 mode="markers", name="BUY",
                 marker=dict(symbol="triangle-up", size=14, color="#00ffaa"),
             ))
         if not sells.empty:
             fig.add_trace(go.Scatter(
-                x=pd.to_datetime(sells["Timestamp"]), y=sells["Price"],
+                x=_snap_to_label(sells["Timestamp"], df_chart_plot.index.tolist()),
+                y=sells["Price"],
                 mode="markers", name="SELL",
                 marker=dict(symbol="triangle-down", size=14, color="#ff4d6d"),
             ))
@@ -408,9 +431,14 @@ if not df_chart.empty:
     if is_live and ticker in st.session_state.pred_cache:
         pred = st.session_state.pred_cache[ticker]
         if pred.get("predicted_close"):
-            next_ts = df_chart.index[-1] + pd.Timedelta(minutes=5)
+            last_label = df_chart_plot.index[-1]
+            next_label = (
+                pd.to_datetime(last_label, format="%m/%d %H:%M", errors="coerce")
+                + pd.Timedelta(minutes=5)
+            )
+            next_label_str = next_label.strftime("%m/%d %H:%M") if not pd.isnull(next_label) else "Next"
             fig.add_trace(go.Scatter(
-                x=[df_chart.index[-1], next_ts],
+                x=[last_label, next_label_str],
                 y=[pred["current_close"], pred["predicted_close"]],
                 mode="lines+markers", name="LSTM Forecast",
                 line=dict(color="#a855f7", width=2, dash="dot"),
@@ -420,13 +448,19 @@ if not df_chart.empty:
 fig.update_layout(
     paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
     font=dict(family="DM Mono", color="#3d4d60", size=11),
-    xaxis=dict(gridcolor="rgba(255,255,255,0.04)",
-               linecolor="rgba(255,255,255,0.06)", rangeslider_visible=False),
+    xaxis=dict(
+        gridcolor="rgba(255,255,255,0.04)",
+        linecolor="rgba(255,255,255,0.06)",
+        rangeslider_visible=False,
+        type="category",
+        tickangle=-45,
+        nticks=20,
+    ),
     yaxis=dict(gridcolor="rgba(255,255,255,0.04)",
                linecolor="rgba(255,255,255,0.06)", side="right"),
     legend=dict(bgcolor="rgba(0,0,0,0)", font=dict(color="#6b7a90")),
     hovermode="x unified",
-    margin=dict(l=10, r=60, t=10, b=10),
+    margin=dict(l=10, r=60, t=10, b=40),
     height=480,
 )
 st.markdown('<div class="chart-wrap">', unsafe_allow_html=True)
@@ -443,7 +477,6 @@ if is_live:
     st.markdown('<div class="section-hdr"><span class="section-hdr-label">03 — LSTM Signal</span></div>',
                 unsafe_allow_html=True)
 
-    # Retrain only when a new 5-min bar arrives (today_bars changes)
     refresh_key = f"{ticker}_{today_bars}"
     if st.session_state.pred_cache.get("_key") != refresh_key:
         with st.spinner(f"Training LSTM … today {today_bars} bars + last-day {last_day_bars} bars"):
@@ -494,7 +527,6 @@ f'<span class="ml">Window</span><span class="mv">60 bars (5-min)</span>'
 f'</div>',
                 unsafe_allow_html=True,
             )
-        # Portfolio composition mini-bar
         labels = ["Cash", "Equity"]
         values = [portfolio["Cash"], portfolio["Holdings"] * current_price]
         fig2 = go.Figure(go.Bar(
@@ -517,7 +549,6 @@ f'</div>',
     st.markdown('<div class="section-hdr"><span class="section-hdr-label">04 — Trade Execution</span></div>',
                 unsafe_allow_html=True)
 
-    # Show trading window status
     win_open, win_secs = trader.is_window_open()
     if win_open:
         st.markdown(
