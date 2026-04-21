@@ -10,7 +10,7 @@ tqdm
 pyyaml
 plotly
 streamlit
-streamlit_autorefresh
+streamlit-autorefresh
 tensorflow==2.13.0
 scikit-learn==1.4.2
 arch
@@ -19,5 +19,8 @@ google-generativeai
 ta
 requests
 python-dotenv
-alpaca-trade-api
+alpaca-py
 alpha_vantage==2.3.1
+Pillow
+pytz
+joblib

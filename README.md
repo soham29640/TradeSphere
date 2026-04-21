@@ -43,7 +43,8 @@ TradeSphere is a modular, production-grade machine learning platform for stock m
 | **📊 Volatility Forecast** | Next-day risk classification | GARCH · LSTM · Attention-LSTM (ensemble) |
 | **🔍 Pattern Detection** | Identify 20 chart patterns from images | ResNet-18 CNN (PyTorch, transfer learning) |
 | **💹 Paper Trading** | Simulated live trading with AI signals | LSTM retrain every 5 min, rule-based engine |
-| **🤖 AI Assistant** | Conversational market intelligence | Google Gemini Pro |
+| **🎯 Daily Quests** | AI-generated daily trading challenges | Google Gemini Pro |
+| **🤖 Trading Agent** | Automated Alpaca paper/live trading bot | LSTM + technical indicators, alpaca-py SDK |
 
 ---
 
@@ -60,7 +61,7 @@ TradeSphere is a modular, production-grade machine learning platform for stock m
 - **📉 Portfolio Metrics** — Real-time unrealised P&L, realised P&L, portfolio value, total return %, and a timestamped trade ledger exportable as a DataFrame.
 
 ### Intelligence & Gamification
-- **🤖 AI Assistant** — A Gemini Pro-powered conversational assistant with deep knowledge of TradeSphere's model architectures, quantitative finance, technical analysis, and risk management. Gives sharp, data-driven answers without ever dispensing financial advice.
+- **🤖 Trading Agent** — An Alpaca-connected automated trading bot that uses a pretrained LSTM (with RSI, SMA, MACD, and Bollinger Band features) to predict the next price move and submit market orders via the `alpaca-py` SDK. Supports both paper and live trading modes with configurable ticker, quantity, and interval.
 - **🎯 Daily Quests** — Gemini-generated daily trading challenges that refresh each day, providing educational market exercises to sharpen analytical skills.
 - **🌡 Market Heat-Map** — A real-time sector heat-map across Technology, Financials, Healthcare, Energy, Consumer, and Comm Services with colour-coded % changes.
 - **📡 Live Ticker Tape** — A continuously scrolling ticker strip for 15 major symbols (equities, indices, crypto, commodities).
@@ -124,7 +125,8 @@ TradeSphere is a modular, production-grade machine learning platform for stock m
 | **Frontend** | `streamlit`, `streamlit-autorefresh` |
 | **AI / LLM** | `google-generativeai` (Gemini Pro) |
 | **Image Processing** | `opencv-python`, `Pillow` |
-| **Utilities** | `tqdm`, `pyyaml`, `joblib` |
+| **Brokerage / Trading** | `alpaca-py` (Alpaca Markets SDK) |
+| **Utilities** | `tqdm`, `pyyaml`, `joblib`, `pytz` |
 
 ---
 
@@ -133,6 +135,15 @@ TradeSphere is a modular, production-grade machine learning platform for stock m
 ```
 TradeSphere/
 ├── backend/
+│   ├── agent/
+│   │   ├── LSTM_model.py              # PyTorch LSTM definition for the trading agent
+│   │   ├── trading_agent.py           # Core decision-making agent (BUY/SELL/HOLD)
+│   │   ├── alpaca_connector.py        # Alpaca REST API wrapper (alpaca-py SDK)
+│   │   ├── alpaca_stream.py           # Alpaca WebSocket data stream
+│   │   ├── indicator_engine.py        # Technical indicators (RSI, SMA, MACD, BB)
+│   │   ├── data_loader.py             # Market data fetcher (yfinance)
+│   │   ├── auto_trade.py              # Automated trading loop
+│   │   └── train_and_save_LSTM_model.py  # Agent LSTM training script
 │   ├── paper/
 │   │   ├── paper_trade.py         # PaperTrader engine (buy/sell/stop-loss/P&L)
 │   │   ├── train_and_predict.py   # LSTM retrain + signal generation
@@ -158,7 +169,7 @@ TradeSphere/
 │       ├── evaluate_models.py
 │       └── data_loader.py
 ├── data/
-│   ├── raw/                       # Raw CSV data (e.g. AAPL.csv)
+│   ├── raw/                       # Raw CSV / image data
 │   └── processed/                 # Preprocessed labels & features
 ├── frontend/
 │   ├── home.py                    # Landing page — ticker tape & sector heatmap
@@ -167,14 +178,23 @@ TradeSphere/
 │       ├── volatility_app.py      # Volatility risk dashboard
 │       ├── pattern_app.py         # Chart pattern recognition dashboard
 │       ├── paper_app.py           # Live paper trading dashboard
-│       ├── assistant.py           # Gemini-powered AI assistant
+│       ├── agent_app.py           # Alpaca automated trading agent dashboard
 │       └── daily_quest.py         # Gemini-generated daily trading quests
-├── models/                        # Saved model weights
-│   ├── price_model.h5
-│   ├── scaler.pkl
-│   ├── lstm_model.h5
-│   ├── attention_model.h5
-│   └── chart_pattern_model.pth
+├── models/                        # Saved model weights (organised by module)
+│   ├── agent/
+│   │   ├── LSTM_model.ptl
+│   │   └── standard_scaler.pkl
+│   ├── paper/
+│   │   ├── LSTM_model.ptl
+│   │   └── scaler.pkl
+│   ├── pattern/
+│   │   └── chart_pattern_model.pth
+│   ├── price/
+│   │   ├── price_model.h5
+│   │   └── scaler.pkl
+│   └── volatility/
+│       ├── lstm_model.h5
+│       └── attention_model.h5
 ├── outputs/
 │   ├── plots/                     # Training & evaluation charts
 │   └── predictions/               # Prediction CSV exports
@@ -190,7 +210,8 @@ TradeSphere/
 - Python **3.9** or higher
 - `pip` package manager
 - (Optional) NVIDIA GPU with CUDA for accelerated model training
-- (Optional) A [Google Gemini API key](https://aistudio.google.com/app/apikey) for the AI Assistant and Daily Quests
+- (Optional) A [Google Gemini API key](https://aistudio.google.com/app/apikey) for Daily Quests
+- (Optional) An [Alpaca Markets API key](https://alpaca.markets) for the Automated Trading Agent
 
 ### Installation
 
@@ -210,14 +231,16 @@ pip install -r requirements.txt
 
 ### Configure Secrets (AI Features)
 
-Create a `.streamlit/secrets.toml` file in the project root to enable the AI Assistant and Daily Quests:
+Create a `.streamlit/secrets.toml` file in the project root to enable Daily Quests:
 
 ```toml
 # .streamlit/secrets.toml
 GEMINI_API_KEY = "your_gemini_api_key_here"
 ```
 
-> Without this key the AI Assistant and Daily Quests pages will still load but will not be able to generate responses.
+> Without this key the Daily Quests page will still load but will not be able to generate challenges.
+
+For the Automated Trading Agent, enter your Alpaca API credentials directly in the dashboard UI (or set them via environment variables `APCA_API_KEY_ID`, `APCA_API_SECRET_KEY`, and `APCA_API_BASE_URL`).
 
 ### Train the Models (optional)
 
@@ -267,8 +290,8 @@ streamlit run frontend/pages/pattern_app.py
 # Paper Trading Dashboard
 streamlit run frontend/pages/paper_app.py
 
-# AI Assistant
-streamlit run frontend/pages/assistant.py
+# Automated Trading Agent (Alpaca)
+streamlit run frontend/pages/agent_app.py
 
 # Daily Quests
 streamlit run frontend/pages/daily_quest.py
@@ -331,16 +354,19 @@ The paper trading module operates in two modes depending on current market hours
 
 ---
 
-### 🤖 AI Assistant
+### 🤖 Automated Trading Agent (Alpaca)
 
-A Gemini Pro-powered conversational assistant pre-loaded with deep knowledge of:
-- TradeSphere's model architectures and platform capabilities
-- Technical analysis: chart patterns, support/resistance, indicators
-- Quantitative finance: LSTM, GARCH, attention mechanisms, time-series forecasting
-- Risk management: position sizing, Kelly criterion, drawdown analysis
-- Market microstructure and volatility regimes
+The Alpaca Trading Agent connects to the Alpaca Markets API to execute automated paper or live trades:
 
-Simply type your question and receive sharp, data-driven answers with markdown formatting.
+- Enter your Alpaca API credentials (Key ID and Secret) directly in the dashboard UI.
+- Choose **Paper** mode (safe, simulated) or **Live** mode (real money) via the radio button.
+- Configure the ticker, share quantity, and polling interval (30 s / 60 s / 120 s).
+- The agent fetches live OHLCV data, computes RSI, SMA, MACD, and Bollinger Band features, and runs the pretrained LSTM to predict the next close price.
+- A **BUY** signal fires when the predicted change exceeds +1 % (and cash is sufficient); a **SELL** signal fires when the predicted change falls below −1 %.
+- All actions are logged in a live terminal panel inside the dashboard.
+- The agent model and scaler are stored in `models/agent/`.
+
+> **Note:** Alpaca API keys are required. Get free paper-trading keys at [alpaca.markets](https://alpaca.markets).
 
 ---
 
@@ -402,17 +428,35 @@ A fresh set of Gemini-generated trading challenges is produced each day. Use the
 
 ---
 
+### Trading Agent — Alpaca LSTM
+
+| Property | Value |
+|---|---|
+| **Architecture** | Stacked LSTM (PyTorch) with technical indicator features |
+| **Features** | Close, RSI, SMA-20, SMA-50, MACD, MACD signal, Bollinger Bands (upper/lower) |
+| **Input window** | 78 bars of 1-day OHLCV + indicator data |
+| **Output** | Next-bar close price prediction |
+| **Signal logic** | BUY if predicted change > +1%; SELL if predicted change < −1%; HOLD otherwise |
+| **Saved weights** | `models/agent/LSTM_model.ptl` · `models/agent/standard_scaler.pkl` |
+
+---
+
 ## ⚙️ Configuration
 
 | Setting | Location | Description |
 |---|---|---|
-| `GEMINI_API_KEY` | `.streamlit/secrets.toml` | Required for AI Assistant and Daily Quests |
+| `GEMINI_API_KEY` | `.streamlit/secrets.toml` | Required for Daily Quests |
+| `APCA_API_KEY_ID` | Agent UI / `.env` | Alpaca API key for Trading Agent |
+| `APCA_API_SECRET_KEY` | Agent UI / `.env` | Alpaca API secret for Trading Agent |
+| `APCA_API_BASE_URL` | Agent UI / `.env` | Alpaca base URL (paper or live) |
 | Auto-refresh interval | `price_app.py` | Default: 3 minutes |
 | Paper trading refresh | `paper_app.py` | Default: 5 minutes |
 | Starting cash | `PaperTrader.__init__` | Default: $100,000 |
 | Stop-loss % | `PaperTrader.__init__` | Default: 2% |
 | Max position | `PaperTrader.__init__` | Default: 500 shares |
 | Risk threshold | Volatility backend | 75th percentile rolling volatility |
+| Agent signal threshold | `TradingAgent.__init__` | Default: 1% price change to trigger trade |
+| Agent sanity threshold | `TradingAgent.__init__` | Default: 5% max change (guards outliers) |
 
 ---
 
