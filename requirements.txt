@@ -1,15 +1,19 @@
-# ===== Core (must match TF + Torch) =====
-numpy==1.23.5
+# ===== Core =====
+numpy==1.26.4
 pandas==2.0.3
-scipy==1.10.1
+scipy==1.11.4
 scikit-learn==1.4.2
 joblib==1.3.2
 
-# ===== Typing (CRITICAL FIX for your errors) =====
-typing_extensions==4.12.2
+# ===== Typing =====
+typing_extensions==4.10.0
 
 # ===== ML =====
-tensorflow==2.13.0
+tensorflow==2.15.0
+keras==2.15.0
+h5py==3.10.0
+protobuf==4.25.3
+
 torch==2.2.2
 torchvision==0.17.2
 
@@ -19,7 +23,7 @@ ta==0.11.0
 arch==5.3.1
 
 # ===== App =====
-streamlit==1.33.0
+streamlit==1.56.0
 streamlit-autorefresh==1.0.1
 
 # ===== Trading =====
@@ -27,7 +31,7 @@ alpaca-py==0.21.0
 alpha_vantage==2.3.1
 
 # ===== Visualization =====
-matplotlib==3.7.5
+matplotlib==3.8.4
 mplfinance==0.12.10b0
 plotly==5.20.0
 

@@ -106,7 +106,7 @@ MODULE_DATA = [
         "num":        "06/06",
         "status":     "ALPACA",
         "icon":       "🤖",
-        "title":      "Alpaca Paper Trading Agent",
+        "title":      "Trading Agent",
         "desc":       "Alpaca-powered autonomous paper trading agent. LSTM signals, live execution, real-time terminal logs.",
         "kpis":       [("AUTO", "Exe"), ("30s", "Int"), ("PAP", "Mod")],
         "tags":       ["ALPACA", "AUTONOMOUS", "LIVE-LOG"],
