@@ -67,7 +67,7 @@ TradeSphere is a modular, production-grade machine learning platform for stock m
 - **📡 Live Ticker Tape** — A continuously scrolling ticker strip for 15 major symbols (equities, indices, crypto, commodities).
 
 ### Platform
-- **⚡ Auto-Refresh** — Dashboards auto-refresh on configurable cadences (3 min for price, 5 min for paper trading) using `streamlit-autorefresh`.
+- **⚡ Auto-Refresh** — Dashboards auto-refresh on configurable cadences (5 min for price, 5 min for paper trading) using `streamlit-autorefresh`.
 - **📤 Custom Data Upload** — The volatility dashboard accepts a user-uploaded `returns.csv` to analyse any asset beyond the built-in defaults.
 
 ---
@@ -119,14 +119,15 @@ TradeSphere is a modular, production-grade machine learning platform for stock m
 | Layer | Libraries / Services |
 |---|---|
 | **Data Ingestion** | `yfinance`, `pandas`, `numpy` |
-| **Deep Learning** | `TensorFlow 2.13 / Keras`, `PyTorch`, `torchvision` |
-| **Classical ML & Stats** | `scikit-learn 1.4`, `arch` (GARCH), `numpy 1.24` |
+| **Deep Learning** | `TensorFlow 2.15.0 / Keras 2.15.0`, `PyTorch`, `torchvision` |
+| **Classical ML & Stats** | `scikit-learn 1.4`, `arch` (GARCH), `numpy 1.26.4`, `scipy` |
+| **Technical Analysis** | `ta` (RSI, MACD, Bollinger Bands, SMA) |
 | **Visualisation** | `matplotlib`, `mplfinance`, `plotly` |
 | **Frontend** | `streamlit`, `streamlit-autorefresh` |
 | **AI / LLM** | `google-generativeai` (Gemini Pro) |
 | **Image Processing** | `opencv-python`, `Pillow` |
-| **Brokerage / Trading** | `alpaca-py` (Alpaca Markets SDK) |
-| **Utilities** | `tqdm`, `pyyaml`, `joblib`, `pytz` |
+| **Brokerage / Trading** | `alpaca-py` (Alpaca Markets SDK), `alpha_vantage` |
+| **Utilities** | `tqdm`, `pyyaml`, `joblib`, `pytz`, `python-dotenv` |
 
 ---
 
@@ -159,14 +160,17 @@ TradeSphere/
 │   ├── price/
 │   │   ├── train_price_model.py   # LSTM price model training
 │   │   ├── auto_trainer.py        # Scheduled auto-retraining
+│   │   ├── update_data.py         # Fetch and refresh raw price CSVs
 │   │   ├── data_loader.py
 │   │   └── load_and_predict_price_model.py
 │   └── volatility/
 │       ├── model_lstm.py          # LSTM volatility model
 │       ├── model_attention.py     # Attention-LSTM model
 │       ├── model_garch.py         # GARCH(1,1) model
+│       ├── custom_attention.py    # Custom AttentionSum Keras layer
 │       ├── compare_models.py
 │       ├── evaluate_models.py
+│       ├── volatility_schedular.py  # Scheduled volatility retraining
 │       └── data_loader.py
 ├── data/
 │   ├── raw/                       # Raw CSV / image data
@@ -311,7 +315,7 @@ The landing page features a live scrolling ticker tape across 15 symbols (equiti
 2. Select a prediction horizon (5–30 steps at 5-minute intervals).
 3. View the candlestick chart alongside the AI forecast overlay.
 4. Monitor live **Current Price** and **Next Predicted Price** with percentage change.
-5. Dashboard auto-refreshes every 3 minutes to stay in sync with the market.
+5. Dashboard auto-refreshes every 5 minutes to stay in sync with the market.
 
 ---
 
@@ -449,7 +453,7 @@ A fresh set of Gemini-generated trading challenges is produced each day. Use the
 | `APCA_API_KEY_ID` | Agent UI / `.env` | Alpaca API key for Trading Agent |
 | `APCA_API_SECRET_KEY` | Agent UI / `.env` | Alpaca API secret for Trading Agent |
 | `APCA_API_BASE_URL` | Agent UI / `.env` | Alpaca base URL (paper or live) |
-| Auto-refresh interval | `price_app.py` | Default: 3 minutes |
+| Auto-refresh interval | `price_app.py` | Default: 5 minutes |
 | Paper trading refresh | `paper_app.py` | Default: 5 minutes |
 | Starting cash | `PaperTrader.__init__` | Default: $100,000 |
 | Stop-loss % | `PaperTrader.__init__` | Default: 2% |
