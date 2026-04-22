@@ -132,6 +132,7 @@ STATS_BAR_DATA = [
     ("AUTO", "Agent Trades"),
 ]
 
+
 NAV_LINKS  = ["Markets", "Models", "Research", "Docs"]
 NAV_CTA    = "→ OPEN PLATFORM"
 HERO_TITLE = ("MARKETS,", "DECODED.")
@@ -211,6 +212,7 @@ def module_card_html(m):
         f'<div class="mc-bgnum">{m["bgnum"]}</div>'
         f'</div>'
     )
+
 
 # ══════════════════════════════════════════════════════════════════════════════
 # ── CSS
@@ -423,6 +425,36 @@ div[data-testid="stColumns"] [data-testid="stColumn"]:nth-child(6) button:hover 
 .stat-val { font-family:'Syne',sans-serif; font-size:30px; letter-spacing:.04em; color:#fff; margin-bottom:6px; line-height:1; font-weight:700; }
 .stat-lbl { font-family:'JetBrains Mono',monospace; font-size:8px; letter-spacing:.18em; color:var(--muted); text-transform:uppercase; }
 
+.risk-strip {
+  position:relative; z-index:5;
+  margin:0 56px;
+  border:1px solid rgba(255,77,109,0.18);
+  border-top:none;
+  background:rgba(255,77,109,0.03);
+  padding:16px 24px;
+  display:flex; gap:18px; align-items:flex-start;
+  animation:fadeUp .8s ease .65s both;
+}
+.rs-icon { font-size:13px; flex-shrink:0; margin-top:2px; color:var(--red); }
+.rs-body { flex:1; }
+.rs-title {
+  font-family:'JetBrains Mono',monospace; font-size:8.5px; letter-spacing:.18em;
+  color:var(--red); text-transform:uppercase; margin-bottom:5px; font-weight:600;
+}
+.rs-text {
+  font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:.05em;
+  color:var(--muted2); line-height:1.85;
+}
+.rs-pills { display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; }
+.rs-pill {
+  font-family:'JetBrains Mono',monospace; font-size:7.5px; letter-spacing:.1em;
+  padding:3px 9px; border-radius:2px; text-transform:uppercase;
+}
+.rsp-warn  { background:rgba(255,77,109,.08);  border:1px solid rgba(255,77,109,.25);  color:var(--red); }
+.rsp-gold  { background:rgba(255,193,69,.07);  border:1px solid rgba(255,193,69,.25);  color:var(--gold); }
+.rsp-blue  { background:rgba(0,194,255,.06);   border:1px solid rgba(0,194,255,.22);   color:var(--blue); }
+.rsp-muted { background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.08); color:var(--muted2); }
+
 /* footer */
 .footer      { position:relative; z-index:5; text-align:center; padding:48px 56px; margin-top:64px; border-top:1px solid var(--border); }
 .footer-logo { font-family:'Syne',sans-serif; font-size:14px; font-weight:800; letter-spacing:.08em; color:rgba(255,255,255,.2); text-transform:uppercase; margin-bottom:12px; }
@@ -503,6 +535,28 @@ stats_html = "".join(
     for val, lbl in STATS_BAR_DATA
 )
 st.markdown(f'<div class="stats-bar">{stats_html}</div>', unsafe_allow_html=True)
+
+# ── RISK STRIP ────────────────────────────────────────────────────────────────
+st.markdown("""
+<div class="risk-strip">
+  <div class="rs-icon">▲</div>
+  <div class="rs-body">
+    <div class="rs-title">⚠ Risk Disclosure</div>
+    <div class="rs-text">
+      TradeSphere is an <strong style="color:rgba(255,255,255,.4)">educational &amp; research platform</strong>.
+      AI outputs are probabilistic forecasts — not financial advice. Past model accuracy does not predict future results.
+      All modules default to <strong style="color:rgba(255,255,255,.4)">simulation mode</strong>.
+      Always consult a qualified financial professional before deploying real capital.
+    </div>
+    <div class="rs-pills">
+      <div class="rs-pill rsp-warn">⚠ Not Financial Advice</div>
+      <div class="rs-pill rsp-gold">Paper Trading Only</div>
+      <div class="rs-pill rsp-blue">Educational Use</div>
+      <div class="rs-pill rsp-muted">Model outputs may be inaccurate</div>
+    </div>
+  </div>
+</div>
+""", unsafe_allow_html=True)
 
 # footer
 st.markdown("""
